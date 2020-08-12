@@ -107,7 +107,7 @@ class VAE(nn.Module):
         else:
             # Without teacher forcing: use its own predictions as the next input
             for i in range(MAX_PRED_LENGTH):
-                decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
+                decoder_output, hidden = self.decoder(decoder_input, hidden)
                 topv, topi = decoder_output.topk(1)                
                 result.append(decoder_output[0])
                 
