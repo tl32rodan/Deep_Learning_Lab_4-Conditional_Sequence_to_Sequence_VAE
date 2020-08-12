@@ -21,11 +21,13 @@ class EncoderRNN(nn.Module):
         self.lstm = nn.LSTM(hidden_size, hidden_size)
 
     def forward(self, input, hidden):
-        embedded = self.embedding(input).view(1, 1, -1)
-        output = embedded
+        # Necessary modification for LSTM
+        hidden = (hidden,hidden)
+        
+        output = self.embedding(input).view(1, 1, -1)
         output, hidden = self.lstm(output, hidden)
         
-        return output, hidden
+        return output, hidden[0]
 
 
 #Decoder
@@ -36,12 +38,16 @@ class DecoderRNN(nn.Module):
 
         self.embedding = nn.Embedding(output_size, hidden_size)
         self.lstm = nn.LSTM(hidden_size, hidden_size)
+        self.out = nn.Linear(hidden_size, output_size)
         
     def forward(self, input, hidden):
-        output = self.embedding(input).view(1, 1, -1)
+        # Necessary modification for LSTM
+        hidden = (hidden,hidden)
         
+        output = self.embedding(input).view(1, 1, -1)
         output, hidden = self.lstm(output, hidden)
-        return output, hidden
+        output = self.out(output[0])
+        return output, hidden[0]
 
 
 # VAE model
@@ -60,9 +66,11 @@ class VAE(nn.Module):
         self.SOS_token = 0
         self.EOS_token = self.vocab_size-1
         
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
     def encode(self, input_seq, hidden):
         for c in input_seq:
-            input_index = torch.LongTensor([[c]])
+            input_index = torch.tensor([[c]], device=self.device)
             _, hidden = self.encoder(input_index, hidden)
         
         mu     = self.fc_mu(hidden)
@@ -82,7 +90,7 @@ class VAE(nn.Module):
         result = []
                
         # Set decoder_input as SOS
-        decoder_input = decoder_input = torch.tensor([[self.SOS_token]])
+        decoder_input = torch.tensor([[self.SOS_token]], device=self.device)
         
         if use_teacher_forcing:
             # target_tensor should not be None
@@ -95,6 +103,7 @@ class VAE(nn.Module):
                 result.append(topi.squeeze().detach())
                 
                 decoder_input = target_tensor[i]  # Teacher forcing
+                decoder_input = torch.tensor([[decoder_input]], device=self.device)
 
         else:
             # Without teacher forcing: use its own predictions as the next input
@@ -104,6 +113,7 @@ class VAE(nn.Module):
                 result.append(topi.squeeze().detach())
                 
                 decoder_input = topi.squeeze().detach()  # detach from history as input
+                decoder_input = torch.tensor([[decoder_input]], device=self.device)
 
                 if decoder_input.item() == self.EOS_token: 
                     break
