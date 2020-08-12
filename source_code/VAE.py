@@ -99,8 +99,7 @@ class VAE(nn.Module):
             # Teacher forcing: Feed the target as the next input
             for i in range(len(target_tensor)):
                 decoder_output, hidden = self.decoder(decoder_input, hidden)
-                topv, topi = decoder_output.topk(1)
-                result.append(topi.squeeze().detach())
+                result.append(decoder_output[0])
                 
                 decoder_input = target_tensor[i]  # Teacher forcing
                 decoder_input = torch.tensor([[decoder_input]], device=self.device)
@@ -110,7 +109,7 @@ class VAE(nn.Module):
             for i in range(MAX_PRED_LENGTH):
                 decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
                 topv, topi = decoder_output.topk(1)                
-                result.append(topi.squeeze().detach())
+                result.append(decoder_output[0])
                 
                 decoder_input = topi.squeeze().detach()  # detach from history as input
                 decoder_input = torch.tensor([[decoder_input]], device=self.device)
@@ -118,7 +117,7 @@ class VAE(nn.Module):
                 if decoder_input.item() == self.EOS_token: 
                     break
     
-        return result
+        return torch.stack(result)
 
     def forward(self, x, hidden, use_teacher_forcing = False, target_tensor = None):
         # Encode
@@ -135,13 +134,15 @@ class VAE(nn.Module):
 # Reference: https://github.com/pytorch/examples/blob/master/vae
 # Reconstruction + KL divergence losses summed over all elements and batch
 def VAE_Loss(recon_x, x, mu, logvar):
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
-
+    CE = nn.CrossEntropyLoss(reduction='sum')
+    CE_loss = CE(recon_x, x)
+    CE_loss = CE_loss/len(x)
+    
     # see Appendix B from VAE paper:
     # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
     # https://arxiv.org/abs/1312.6114
     # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-    return BCE + KLD
+    return CE_loss + KLD
 
