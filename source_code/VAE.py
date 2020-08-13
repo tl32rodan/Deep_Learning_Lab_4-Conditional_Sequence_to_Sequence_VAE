@@ -53,13 +53,14 @@ class DecoderRNN(nn.Module):
 # VAE model
 class VAE(nn.Module):
     def __init__(self,input_size, hidden_size, output_size, teacher_forcing_ratio = 1.0):
-        super(VAE, self).__init__()
+        super(VAE, self).__init__()       
 
         self.encoder   = EncoderRNN(input_size, hidden_size)
         self.fc_mu     = nn.Linear(hidden_size, hidden_size)
         self.fc_logvar = nn.Linear(hidden_size, hidden_size)
         self.decoder   = DecoderRNN(hidden_size, output_size)
         self.teacher_forcing_ratio = teacher_forcing_ratio
+
         
         #The number of vocabulary
         self.vocab_size = 28
@@ -127,6 +128,113 @@ class VAE(nn.Module):
         hidden = self.reparameterize(mu, logvar)
         
         result = self.decode(hidden, use_teacher_forcing, target_tensor)
+        
+        return result, mu, logvar
+
+
+# Conditional VAE model
+class CondVAE(nn.Module):
+    def __init__(self,input_size, hidden_size, output_size, teacher_forcing_ratio = 1.0):
+        super(VAE, self).__init__()
+        self.hidden_size = hidden_size
+        # Condition matters
+        self.condition_embedding_size = 8
+        self.num_conditions = 4
+        
+        self.latent_size = 32
+        self.teacher_forcing_ratio = teacher_forcing_ratio
+        
+        # Embedding of condition
+        self.encoder_condition_embedding = nn.Embedding(self.num_conditions, self.condition_embedding_size)
+        self.encoder   = EncoderRNN(input_size, self.hidden_size+self.condition_embedding_size)
+        
+        self.fc_mu     = nn.Linear(self.hidden_size+self.condition_embedding_size, latent_size)
+        self.fc_logvar = nn.Linear(self.hidden_size+self.condition_embedding_size, latent_size)
+        self.fc_extend_latent = = nn.Linear(latent_size, hidden_size)
+        
+        self.decoder_condition_embedding = nn.Embedding(self.num_conditions, self.condition_embedding_size)
+        self.decoder   = DecoderRNN(self.hidden_size+self.condition_embedding_size, output_size)
+        
+        #The number of vocabulary
+        self.vocab_size = 28
+        self.SOS_token = 0
+        self.EOS_token = self.vocab_size-1
+        
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+    def encode(self, input_seq, hidden, encode_cond):
+        # Get condition embedding
+        cond_embeded = self.encoder_condition_embedding(encode_cond).view(1, 1, -1)
+        # Concat hidden and condition
+        hidden = torch.cat((hidden, cond_embeded),2)
+        
+        for c in input_seq:
+            input_index = torch.tensor([[c]], device=self.device)
+            _, hidden = self.encoder(input_index, hidden)
+        
+        mu     = self.fc_mu(hidden)
+        logvar = self.fc_logvar(hidden)
+        
+        return mu, logvar
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5*logvar)
+        
+        # eps is generated from N(0,I)
+        eps = torch.randn_like(std)
+        
+        latent = mu + eps*std
+        
+        # Extend latent
+        return self.fc_extend_latent(latent)
+
+    def decode(self, hidden, decode_cond, use_teacher_forcing = False, target_tensor = None):
+        result = []
+        
+        # Get condition embedding
+        cond_embeded = self.decoder_condition_embedding(decode_cond).view(1, 1, -1)
+        # Concat hidden and condition
+        hidden = torch.cat((hidden, cond_embeded),2)
+        
+        
+        # Set decoder_input as SOS
+        decoder_input = torch.tensor([[self.SOS_token]], device=self.device)
+        
+        if use_teacher_forcing:
+            # target_tensor should not be None
+            assert target_tensor is not None, "target_tensor should be specified"
+            
+            # Teacher forcing: Feed the target as the next input
+            for i in range(len(target_tensor)):
+                decoder_output, hidden = self.decoder(decoder_input, hidden)
+                result.append(decoder_output[0])
+                
+                decoder_input = target_tensor[i]  # Teacher forcing
+                decoder_input = torch.tensor([[decoder_input]], device=self.device)
+
+        else:
+            # Without teacher forcing: use its own predictions as the next input
+            for i in range(MAX_PRED_LENGTH):
+                decoder_output, hidden = self.decoder(decoder_input, hidden)
+                topv, topi = decoder_output.topk(1)                
+                result.append(decoder_output[0])
+                
+                decoder_input = topi.squeeze().detach()  # detach from history as input
+                decoder_input = torch.tensor([[decoder_input]], device=self.device)
+
+                if decoder_input.item() == self.EOS_token: 
+                    break
+    
+        return torch.stack(result)
+
+    def forward(self, x, hidden, encode_cond, decode_cond use_teacher_forcing = False, target_tensor = None):
+        # Encode
+        mu, logvar = self.encode(x, hidden, encode_cond)
+        
+        # Reparameterize
+        hidden = self.reparameterize(mu, logvar)
+        
+        result = self.decode(hidden, decode_cond, use_teacher_forcing, target_tensor)
         
         return result, mu, logvar
 
