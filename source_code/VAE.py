@@ -1,53 +1,10 @@
 import torch
 import torch.nn as nn
 from torch import optim
-import torch.nn.functional as F
-import matplotlib.pyplot as plt
-plt.switch_backend('agg')
-import matplotlib.ticker as ticker
-import numpy as np
-import random
+from encoder import EncoderRNN
+from decoder import DecoderRNN
 
 MAX_PRED_LENGTH = 25
-
-
-#Encoder
-class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size):
-        super(EncoderRNN, self).__init__()
-        self.hidden_size = hidden_size
-
-        self.embedding = nn.Embedding(input_size, hidden_size)
-        self.lstm = nn.LSTM(hidden_size, hidden_size)
-
-    def forward(self, input, hidden):
-        # Necessary modification for LSTM
-        hidden = (hidden,hidden)
-        
-        output = self.embedding(input).view(1, 1, -1)
-        output, hidden = self.lstm(output, hidden)
-        
-        return output, hidden[0]
-
-
-#Decoder
-class DecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size):
-        super(DecoderRNN, self).__init__()
-        self.hidden_size = hidden_size
-
-        self.embedding = nn.Embedding(output_size, hidden_size)
-        self.lstm = nn.LSTM(hidden_size, hidden_size)
-        self.out = nn.Linear(hidden_size, output_size)
-        
-    def forward(self, input, hidden):
-        # Necessary modification for LSTM
-        hidden = (hidden,hidden)
-        
-        output = self.embedding(input).view(1, 1, -1)
-        output, hidden = self.lstm(output, hidden)
-        output = self.out(output[0])
-        return output, hidden[0]
 
 
 # VAE model
@@ -118,7 +75,7 @@ class VAE(nn.Module):
                 if decoder_input.item() == self.EOS_token: 
                     break
     
-        return torch.stack(result)
+        return torch.stack()
 
     def forward(self, x, hidden, use_teacher_forcing = False, target_tensor = None):
         # Encode
@@ -135,7 +92,7 @@ class VAE(nn.Module):
 # Conditional VAE model
 class CondVAE(nn.Module):
     def __init__(self,input_size, hidden_size, output_size, teacher_forcing_ratio = 1.0):
-        super(VAE, self).__init__()
+        super(CondVAE, self).__init__()
         self.hidden_size = hidden_size
         # Condition matters
         self.condition_embedding_size = 8
@@ -148,9 +105,9 @@ class CondVAE(nn.Module):
         self.encoder_condition_embedding = nn.Embedding(self.num_conditions, self.condition_embedding_size)
         self.encoder   = EncoderRNN(input_size, self.hidden_size+self.condition_embedding_size)
         
-        self.fc_mu     = nn.Linear(self.hidden_size+self.condition_embedding_size, latent_size)
-        self.fc_logvar = nn.Linear(self.hidden_size+self.condition_embedding_size, latent_size)
-        self.fc_extend_latent = = nn.Linear(latent_size, hidden_size)
+        self.fc_mu     = nn.Linear(self.hidden_size+self.condition_embedding_size, self.latent_size)
+        self.fc_logvar = nn.Linear(self.hidden_size+self.condition_embedding_size, self.latent_size)
+        self.fc_extend_latent = nn.Linear(self.latent_size, self.hidden_size)
         
         self.decoder_condition_embedding = nn.Embedding(self.num_conditions, self.condition_embedding_size)
         self.decoder   = DecoderRNN(self.hidden_size+self.condition_embedding_size, output_size)
@@ -164,6 +121,7 @@ class CondVAE(nn.Module):
         
     def encode(self, input_seq, hidden, encode_cond):
         # Get condition embedding
+        encode_cond = torch.tensor([[encode_cond]], device=self.device)
         cond_embeded = self.encoder_condition_embedding(encode_cond).view(1, 1, -1)
         # Concat hidden and condition
         hidden = torch.cat((hidden, cond_embeded),2)
@@ -192,6 +150,7 @@ class CondVAE(nn.Module):
         result = []
         
         # Get condition embedding
+        decode_cond = torch.tensor([[decode_cond]], device=self.device)
         cond_embeded = self.decoder_condition_embedding(decode_cond).view(1, 1, -1)
         # Concat hidden and condition
         hidden = torch.cat((hidden, cond_embeded),2)
@@ -222,12 +181,12 @@ class CondVAE(nn.Module):
                 decoder_input = topi.squeeze().detach()  # detach from history as input
                 decoder_input = torch.tensor([[decoder_input]], device=self.device)
 
-                if decoder_input.item() == self.EOS_token: 
+                if decoder_input.item() == self.EOS_token:
                     break
-    
+                    
         return torch.stack(result)
 
-    def forward(self, x, hidden, encode_cond, decode_cond use_teacher_forcing = False, target_tensor = None):
+    def forward(self, x, hidden, encode_cond, decode_cond, use_teacher_forcing = False, target_tensor = None):
         # Encode
         mu, logvar = self.encode(x, hidden, encode_cond)
         
@@ -252,5 +211,20 @@ def VAE_Loss(recon_x, x, mu, logvar):
     # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-    return CE_loss + KLD
+    return CE_loss+KLD
 
+
+def VAE_Loss_CE(recon_x, x):
+    CE = nn.CrossEntropyLoss(reduction='mean')
+    CE_loss = CE(recon_x, x)
+    return CE_loss
+
+
+def VAE_Loss_KLD(mu, logvar):
+    # see Appendix B from VAE paper:
+    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+    # https://arxiv.org/abs/1312.6114
+    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    
+    return KLD

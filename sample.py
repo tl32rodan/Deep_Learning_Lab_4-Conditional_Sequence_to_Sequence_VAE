@@ -167,7 +167,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     decoder_hidden = encoder_hidden
 
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
-	
+
 
     #----------sequence to sequence part for decoder----------#
     if use_teacher_forcing:
