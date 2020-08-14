@@ -73,7 +73,7 @@ EOS_token = vocab_size-1
 hidden_size = 256
 latent_size = 32
 teacher_forcing_ratio = 0.6
-kl_annealing = 'mono'
+kl_annealing = 'cyclical'
 KLD_weight = 0.0
 lr = 0.01
 
