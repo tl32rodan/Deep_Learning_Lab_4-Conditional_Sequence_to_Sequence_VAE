@@ -218,8 +218,8 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
         avg_kld  = 0.
         
         # KL annealing
-        #beta = KL_annealing(epoch, policy=kl_annealing)
-        beta = 1e-4
+        beta = KL_annealing(epoch, policy=kl_annealing)
+        #beta = 1e-4
         #print('beta = ',beta)
         
         for data_tuple in data_tuples:
