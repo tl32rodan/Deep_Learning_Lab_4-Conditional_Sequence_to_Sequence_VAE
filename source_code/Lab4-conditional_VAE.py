@@ -255,7 +255,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
         avg_kld  = avg_kld/(iter_per_epoch*16)
         
         if scheduler is not None:
-            scheduler.step(avg_loss)
+            scheduler.step()
         
         if (epoch+1) % record_every == 0:
             loss_list.append(avg_loss)
@@ -304,8 +304,8 @@ lr_sch = optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.8)
 
 
 loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
-    trainIter_condVAE(my_vae, train_vocab, n_epochs=1200000, iter_per_epoch = 10,\
-                      print_every=1, save_every=1000, record_every=10,\
+    trainIter_condVAE(my_vae, train_vocab, n_epochs=3000000, iter_per_epoch = 10,\
+                      print_every=200, save_every=200, record_every=10,\
                       learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
                       optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
                       criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     \
