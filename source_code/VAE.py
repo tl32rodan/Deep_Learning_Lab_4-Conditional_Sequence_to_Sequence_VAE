@@ -27,6 +27,9 @@ class VAE(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
     def encode(self, input_seq, hidden):
+        # Necessary modification for LSTM
+        hidden = (hidden,hidden)
+        
         for c in input_seq:
             input_index = torch.tensor([[c]], device=self.device)
             _, hidden = self.encoder(input_index, hidden)
@@ -120,18 +123,21 @@ class CondVAE(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
     def encode(self, input_seq, hidden, encode_cond):
+        # Necessary modification for LSTM
+        hidden = (hidden,hidden)
+        
         # Get condition embedding
         encode_cond = torch.tensor([[encode_cond]], device=self.device)
         cond_embeded = self.encoder_condition_embedding(encode_cond).view(1, 1, -1)
         # Concat hidden and condition
-        hidden = torch.cat((hidden, cond_embeded),2)
+        hidden = (torch.cat((hidden[0], cond_embeded),2), torch.cat((hidden[1], cond_embeded),2))
         
         for c in input_seq:
             input_index = torch.tensor([[c]], device=self.device)
             _, hidden = self.encoder(input_index, hidden)
         
-        mu     = self.fc_mu(hidden)
-        logvar = self.fc_logvar(hidden)
+        mu     = self.fc_mu(hidden[1])
+        logvar = self.fc_logvar(hidden[1])
         
         return mu, logvar
 
@@ -153,8 +159,7 @@ class CondVAE(nn.Module):
         decode_cond = torch.tensor([[decode_cond]], device=self.device)
         cond_embeded = self.decoder_condition_embedding(decode_cond).view(1, 1, -1)
         # Concat hidden and condition
-        hidden = torch.cat((hidden, cond_embeded),2)
-        
+        hidden = (torch.cat((hidden[0], cond_embeded),2), torch.cat((hidden[1], cond_embeded),2))
         
         # Set decoder_input as SOS
         decoder_input = torch.tensor([[self.SOS_token]], device=self.device)
@@ -193,6 +198,8 @@ class CondVAE(nn.Module):
         # Reparameterize
         hidden = self.reparameterize(mu, logvar)
         
+        hidden = (torch.zeros(1, 1, self.hidden_size, device=self.device), hidden)
+        
         result = self.decode(hidden, decode_cond, use_teacher_forcing, target_tensor)
         
         return result, mu, logvar
@@ -215,7 +222,7 @@ def VAE_Loss(recon_x, x, mu, logvar):
 
 
 def VAE_Loss_CE(recon_x, x):
-    CE = nn.CrossEntropyLoss(reduction='sum')
+    CE = nn.CrossEntropyLoss()
     CE_loss = CE(recon_x, x)
     CE_loss = CE_loss/len(x)
     return CE_loss
