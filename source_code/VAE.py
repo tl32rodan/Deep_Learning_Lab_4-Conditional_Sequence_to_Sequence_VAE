@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import optim
 from encoder import EncoderRNN
 from decoder import DecoderRNN
@@ -138,9 +139,10 @@ class CondVAE(nn.Module):
         
         
         ######### RELU hidden ############
+        hidden = F.relu(hidden[1])
         
-        mu     = self.fc_mu(hidden[1])
-        logvar = self.fc_logvar(hidden[1])
+        mu     = self.fc_mu(hidden)
+        logvar = self.fc_logvar(hidden)
         
         return mu, logvar
 
@@ -211,7 +213,7 @@ class CondVAE(nn.Module):
 # Reference: https://github.com/pytorch/examples/blob/master/vae
 # Reconstruction + KL divergence losses summed over all elements and batch
 def VAE_Loss(recon_x, x, mu, logvar):
-    CE = nn.CrossEntropyLoss()
+    CE = nn.CrossEntropyLoss(reduction='sum')
     CE_loss = CE(recon_x, x)
     CE_loss = CE_loss/len(x)
     
@@ -225,7 +227,7 @@ def VAE_Loss(recon_x, x, mu, logvar):
 
 
 def VAE_Loss_CE(recon_x, x):
-    CE = nn.CrossEntropyLoss()
+    CE = nn.CrossEntropyLoss(reduction='sum')
     CE_loss = CE(recon_x, x)
     CE_loss = CE_loss/len(x)
     return CE_loss

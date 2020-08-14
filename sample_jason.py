@@ -375,7 +375,7 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
     print_KL_loss = 0
     print_CE_loss = 0
 
-    pairs, label = dataloader("./data/train.txt")
+    pairs, label = dataloader("./source_code/data/train.txt")
 
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
