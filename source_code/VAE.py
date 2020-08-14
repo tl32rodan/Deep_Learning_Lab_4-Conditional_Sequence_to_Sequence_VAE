@@ -130,7 +130,7 @@ class CondVAE(nn.Module):
         encode_cond = torch.tensor([[encode_cond]], device=self.device)
         cond_embeded = self.encoder_condition_embedding(encode_cond).view(1, 1, -1)
         # Concat hidden and condition
-        hidden = torch.cat((hidden, cond_embeded),2)
+        hidden = (torch.cat((hidden[0], cond_embeded),2), torch.cat((hidden[1], cond_embeded),2))
         
         for c in input_seq:
             input_index = torch.tensor([[c]], device=self.device)
@@ -159,7 +159,7 @@ class CondVAE(nn.Module):
         decode_cond = torch.tensor([[decode_cond]], device=self.device)
         cond_embeded = self.decoder_condition_embedding(decode_cond).view(1, 1, -1)
         # Concat hidden and condition
-        hidden = torch.cat((hidden, cond_embeded),2)
+        hidden = (torch.cat((hidden[0], cond_embeded),2), torch.cat((hidden[1], cond_embeded),2))
         
         # Set decoder_input as SOS
         decoder_input = torch.tensor([[self.SOS_token]], device=self.device)
@@ -198,7 +198,7 @@ class CondVAE(nn.Module):
         # Reparameterize
         hidden = self.reparameterize(mu, logvar)
         
-        hidden = (torch.zeros(1, 1, hidden_size, device=device), hidden)
+        hidden = (torch.zeros(1, 1, self.hidden_size, device=self.device), hidden)
         
         result = self.decode(hidden, decode_cond, use_teacher_forcing, target_tensor)
         
