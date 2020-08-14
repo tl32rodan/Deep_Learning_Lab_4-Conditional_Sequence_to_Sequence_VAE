@@ -105,7 +105,7 @@ def KL_annealing(current_iter, policy = 'mono', reach_max = 300, period = 600):
     if policy == 'mono':
         beta = 1 if current_iter >= reach_max else (current_iter+1)/reach_max
     elif policy == 'cyclical':
-        beta = 1 if current_iter%period >= reach_max else ((rrent_iter+1)%period)/reach_max
+        beta = 1 if current_iter%period >= reach_max else ((current_iter+1)%period)/reach_max
     else:
         raise ValueError
         
