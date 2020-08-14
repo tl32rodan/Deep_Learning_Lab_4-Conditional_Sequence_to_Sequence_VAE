@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
+# %%
 
-# In[ ]:
+# %%
 
 
 from dataloader import *
@@ -17,7 +18,7 @@ plt.switch_backend('agg')
 import random
 
 
-# In[ ]:
+# %%
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,7 +26,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # # Prepare data
 
-# In[ ]:
+# %%
 
 
 train_vocab = load_data('./data/train.txt')
@@ -35,7 +36,7 @@ test_vocab = load_data('./data/test.txt')
 # ## Get different tense pairs
 # ### !Basically unused in conditional VAE training!
 
-# In[ ]:
+# %%
 
 
 def get_tense_paris(train_vocab, input_tense, target_tense):
@@ -56,7 +57,7 @@ train_st_past  = get_tense_paris(train_vocab, 0, 3)
 
 # # Train VAE
 
-# In[ ]:
+# %%
 
 
 vocab_size = 28 #The number of vocabulary
@@ -66,7 +67,7 @@ EOS_token = vocab_size-1
 
 # ## Setting hyperparameters
 
-# In[ ]:
+# %%
 
 
 #----------Hyper Parameters----------#
@@ -78,7 +79,7 @@ KLD_weight = 0.0
 lr = 0.01
 
 
-# In[ ]:
+# %%
 
 
 def seq_from_str(target):
@@ -98,7 +99,7 @@ def str_from_tensor(target):
 
 # ## Use KL annealing
 
-# In[ ]:
+# %%
 
 
 def KL_annealing(current_iter, policy = 'mono', reach_max = 30000, period = 60000):
@@ -114,7 +115,7 @@ def KL_annealing(current_iter, policy = 'mono', reach_max = 30000, period = 6000
 
 # ## Inference 4 tense using simple present (for BLEU-4 score)
 
-# In[ ]:
+# %%
 
 
 def infer_by_simple(vae_model, data_tuple):
@@ -141,7 +142,7 @@ def infer_by_simple(vae_model, data_tuple):
 
 # ## Training Functions
 
-# In[ ]:
+# %%
 
 
 def train_condVAE(vae_model, input_seq, input_cond, target_seq, target_cond, use_teacher_forcing, optimizer,                   criterion_CE, criterion_KLD, kl_annealing_beta = 1):    
@@ -186,7 +187,7 @@ def train_condVAE(vae_model, input_seq, input_cond, target_seq, target_cond, use
     return ce_loss.item(), kld_loss.item(), hat_y
 
 
-# In[ ]:
+# %%
 
 
 def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_every=100, save_every=100, record_every=1,
@@ -217,8 +218,8 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
         avg_kld  = 0.
         
         # KL annealing
-        beta = KL_annealing(epoch, policy=kl_annealing)
-        #beta = 1e-4
+        #beta = KL_annealing(epoch, policy=kl_annealing)
+        beta = 1e-4
         #print('beta = ',beta)
         
         for data_tuple in data_tuples:
@@ -283,32 +284,33 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
     return loss_list, ce_loss_list, kld_loss_list, bleu_list
 
 
-# In[ ]:
+# %%
 
 
 my_vae = CondVAE(vocab_size, hidden_size, vocab_size, teacher_forcing_ratio).to(device)
 
 
-# In[ ]:
+# %%
 
 
 optimizer = optim.SGD(my_vae.parameters(), lr=lr)
-lr_sch = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+lr_sch = optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.8)
+
 
 
 # ## Train
 
-# In[ ]:
+# %%
 
 
 loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
     trainIter_condVAE(my_vae, train_vocab, n_epochs=1200000, iter_per_epoch = 10,\
-                      print_every=200, save_every=1000, record_every=10,\
+                      print_every=1, save_every=1000, record_every=10,\
                       learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
                       optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
                       criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     \
                       kl_annealing = kl_annealing)
-# In[ ]:
+# %%
 
 
 plt.plot(kld_loss_list)
@@ -316,7 +318,7 @@ plt.plot(kld_loss_list)
 
 # # Evaluation
 
-# In[ ]:
+# %%
 
 
 def val(vae_model, data_pairs, num_eval_data ,criterion_CE = VAE_Loss_CE, criterion_KLD = VAE_Loss_KLD):
@@ -373,13 +375,13 @@ def val(vae_model, data_pairs, num_eval_data ,criterion_CE = VAE_Loss_CE, criter
     return loss_list, ce_loss_list, kld_loss_list
 
 
-# In[ ]:
+# %%
 
 
 val(my_vae, train_vocab, num_eval_data= 200, criterion = VAE_Loss)
 
 
-# In[ ]:
+# %%
 
 
 

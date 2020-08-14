@@ -13,10 +13,8 @@ class DecoderRNN(nn.Module):
         self.out = nn.Linear(hidden_size, output_size)
         
     def forward(self, input, hidden):
-        # Necessary modification for LSTM
-        hidden = (hidden,hidden)
         
         output = self.embedding(input).view(1, 1, -1)
         output, hidden = self.lstm(output, hidden)
         output = self.out(output[0])
-        return output, hidden[0]
+        return output, hidden
