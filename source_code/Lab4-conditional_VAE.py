@@ -71,12 +71,12 @@ EOS_token = vocab_size-1
 
 
 #----------Hyper Parameters----------#
-hidden_size = 256
+hidden_size = 128
 latent_size = 32
 teacher_forcing_ratio = 0.6
 kl_annealing = 'mono'
 KLD_weight = 0.0
-lr = 0.01
+lr = 0.05
 
 
 # %%
