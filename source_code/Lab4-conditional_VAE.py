@@ -101,7 +101,7 @@ def str_from_tensor(target):
 # In[ ]:
 
 
-def KL_annealing(current_iter, policy = 'mono', reach_max = 300, period = 600):
+def KL_annealing(current_iter, policy = 'mono', reach_max = 5000, period = 10000):
     if policy == 'mono':
         beta = 1 if current_iter >= reach_max else (current_iter+1)/reach_max
     elif policy == 'cyclical':
