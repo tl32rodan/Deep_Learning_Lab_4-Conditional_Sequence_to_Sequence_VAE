@@ -294,7 +294,7 @@ my_vae = CondVAE(vocab_size, hidden_size, vocab_size, teacher_forcing_ratio).to(
 
 
 optimizer = optim.SGD(my_vae.parameters(), lr=lr)
-lr_sch = optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.8)
+lr_sch = optim.lr_scheduler.StepLR(optimizer, 500, gamma=0.8)
 
 
 
@@ -305,7 +305,7 @@ lr_sch = optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.8)
 
 loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
     trainIter_condVAE(my_vae, train_vocab, n_epochs=3000000, iter_per_epoch = 10,\
-                      print_every=200, save_every=200, record_every=10,\
+                      print_every=100, save_every=200, record_every=10,\
                       learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
                       optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
                       criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     \
