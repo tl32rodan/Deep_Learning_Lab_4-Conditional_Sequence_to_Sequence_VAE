@@ -248,10 +248,10 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
                     avg_kld  += kld_loss                
         
         
-        avg_bleu = avg_bleu/(iter_per_epoch*4)
-        avg_loss = avg_loss/(iter_per_epoch*4)
-        avg_ce   = avg_ce/(iter_per_epoch*4)
-        avg_kld  = avg_kld/(iter_per_epoch*4)
+        avg_bleu = avg_bleu/(iter_per_epoch*16)
+        avg_loss = avg_loss/(iter_per_epoch*16)
+        avg_ce   = avg_ce/(iter_per_epoch*16)
+        avg_kld  = avg_kld/(iter_per_epoch*16)
         
         if scheduler is not None:
             scheduler.step(avg_loss)
