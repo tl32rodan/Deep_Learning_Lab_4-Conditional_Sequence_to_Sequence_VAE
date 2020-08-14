@@ -208,14 +208,16 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
     if optimizer is None:
         optimizer = optim.SGD(vae_model.parameters(), lr=learning_rate)
     
+    avg_bleu = 0.
+    avg_loss = 0.
+    avg_ce   = 0.
+    avg_kld  = 0.
+    avg_counter = 0
+    
     for epoch in range(n_epochs): 
         # Randomly pick data
         data_tuples = [random.choice(data) for i in range(iter_per_epoch)]
         
-        avg_bleu = 0.
-        avg_loss = 0.
-        avg_ce   = 0.
-        avg_kld  = 0.
         
         # KL annealing
         beta = KL_annealing(epoch, policy=kl_annealing)
@@ -247,12 +249,8 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
                     avg_loss += loss
                     avg_ce   += ce_loss
                     avg_kld  += kld_loss                
+                    avg_counter += 1 
         
-        
-        avg_bleu = avg_bleu/(iter_per_epoch*16)
-        avg_loss = avg_loss/(iter_per_epoch*16)
-        avg_ce   = avg_ce/(iter_per_epoch*16)
-        avg_kld  = avg_kld/(iter_per_epoch*16)
         
         if scheduler is not None:
             scheduler.step()
@@ -264,6 +262,11 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
             bleu_list.append(avg_bleu)
             
         if (epoch+1) % print_every == 0:
+            avg_bleu = avg_bleu/avg_counter
+            avg_loss = avg_loss/avg_counter
+            avg_ce   = avg_ce/avg_counter
+            avg_kld  = avg_kld/avg_counter
+
             print('-----------------')
             print('Iter %d: avg_loss = %.4f' % (epoch+1, avg_loss))
             print('Avg CE = ', avg_ce)
@@ -277,6 +280,12 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
             print('|| pred_seq = ', pred_seq)
             print('|| target_seq = ', data_tuple)
             print('=========================')
+            # Reset 
+            avg_bleu = 0.
+            avg_loss = 0.
+            avg_ce   = 0.
+            avg_kld  = 0.
+            avg_counter = 0
             
         if (epoch+1) % save_every == 0:
             torch.save(vae_model,'./models/condVAE_'+str(epoch+1)+date)
@@ -305,7 +314,7 @@ lr_sch = optim.lr_scheduler.StepLR(optimizer, 500, gamma=0.8)
 
 loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
     trainIter_condVAE(my_vae, train_vocab, n_epochs=3000000, iter_per_epoch = 10,\
-                      print_every=100, save_every=200, record_every=10,\
+                      print_every=1, save_every=200, record_every=10,\
                       learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
                       optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
                       criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     \
