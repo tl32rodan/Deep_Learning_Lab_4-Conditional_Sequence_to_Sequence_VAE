@@ -301,12 +301,12 @@ lr_sch = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 # In[ ]:
 
 
-loss_list, ce_loss_list, kld_loss_list, bleu_list =  
-    trainIter_condVAE(my_vae, train_vocab, n_epochs=1200000, iter_per_epoch = 10,
-                      print_every=200, save_every=1000, record_every=10,
-                      learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,
-                      optimizer= optimizer, criterion_CE = VAE_Loss_CE,
-                      criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     
+loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
+    trainIter_condVAE(my_vae, train_vocab, n_epochs=1200000, iter_per_epoch = 10,\
+                      print_every=200, save_every=1000, record_every=10,\
+                      learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
+                      optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
+                      criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     \
                       kl_annealing = kl_annealing)
 
 
