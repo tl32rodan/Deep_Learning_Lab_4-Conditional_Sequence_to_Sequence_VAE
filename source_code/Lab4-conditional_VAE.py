@@ -101,7 +101,7 @@ def str_from_tensor(target):
 # In[ ]:
 
 
-def KL_annealing(current_iter, policy = 'mono', reach_max = 300, period = 600):
+def KL_annealing(current_iter, policy = 'mono', reach_max = 30000, period = 60000):
     if policy == 'mono':
         beta = 1 if current_iter >= reach_max else (current_iter+1)/reach_max
     elif policy == 'cyclical':
@@ -301,7 +301,13 @@ lr_sch = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 # In[ ]:
 
 
-loss_list, ce_loss_list, kld_loss_list, bleu_list =             trainIter_condVAE(my_vae, train_vocab, n_epochs=1200, iter_per_epoch = 200,                            print_every=1, save_every=1, record_every=10,                           learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,                            optimizer= optimizer, criterion_CE = VAE_Loss_CE,                            criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,                             kl_annealing = kl_annealing)
+loss_list, ce_loss_list, kld_loss_list, bleu_list = \
+                   trainIter_condVAE(my_vae, train_vocab, n_epochs=300000, iter_per_epoch = 50, \
+                   print_every=5, save_every=1000, record_every=10,\
+                   learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
+                   optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
+                   criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,\
+                   kl_annealing = kl_annealing)
 
 
 # In[ ]:

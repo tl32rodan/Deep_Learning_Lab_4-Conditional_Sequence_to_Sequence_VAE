@@ -215,8 +215,9 @@ def VAE_Loss(recon_x, x, mu, logvar):
 
 
 def VAE_Loss_CE(recon_x, x):
-    CE = nn.CrossEntropyLoss(reduction='mean')
+    CE = nn.CrossEntropyLoss(reduction='sum')
     CE_loss = CE(recon_x, x)
+    CE_loss = CE_loss/len(x)
     return CE_loss
 
 
