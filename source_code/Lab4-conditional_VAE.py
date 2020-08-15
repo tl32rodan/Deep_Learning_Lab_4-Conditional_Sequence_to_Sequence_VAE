@@ -16,6 +16,7 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import random
+import math
 
 
 # %%
@@ -73,8 +74,8 @@ EOS_token = vocab_size-1
 #----------Hyper Parameters----------#
 hidden_size = 256
 latent_size = 32
-teacher_forcing_ratio = 0.6
-kl_annealing = 'cyclical'
+teacher_forcing_ratio = 1/math.e
+kl_annealing = 'mono'
 KLD_weight = 0.0
 lr = 0.05
 
