@@ -16,9 +16,15 @@ import math
 # +
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+#----------Hyper Parameters----------#
+hidden_size = 256
+latent_size = 32
 vocab_size = 28 #The number of vocabulary
 SOS_token = 0
 EOS_token = vocab_size-1
+
+
+# +
 
 def infer_by_simple(vae_model, data_tuple):
     pred_tuple = []
@@ -84,6 +90,9 @@ def train_condVAE(vae_model, input_seq, input_cond, target_seq, target_cond, use
     return ce_loss.item(), kld_loss.item(), hat_y
 
 
+
+# +
+
 def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, 
                       print_every=100, save_every=100, 
                       learning_rate=0.01, teacher_forcing_ratio = 1.0, 
@@ -104,11 +113,12 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
         optimizer = optim.SGD(vae_model.parameters(), lr=learning_rate)
     
     avg_bleu = 0.
+    avg_gaussian = 0.
     avg_loss = 0.
     avg_ce   = 0.
     avg_kld  = 0.
     avg_counter = 0
-    bleu_counter = 0
+    score_counter = 0
     
     for epoch in range(n_epochs): 
         # Randomly pick data
@@ -122,11 +132,10 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
         
         for data_tuple in data_tuples:
             
-            # Calculate BLEU-4 score
-            # Should execute before updating the model
-            pred = infer_by_simple(vae_model, data_tuple)
-            avg_bleu += compute_bleu(pred, data_tuple)
-            bleu_counter += 1
+            # Calculate score
+            avg_bleu += cal_bleu(vae_model)
+            avg_gaussian += cal_gaussian(vae_model, latent_size)
+            score_counter += 1
             
             for i in range(4):
                 for j in range(4):
@@ -154,7 +163,8 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
         
             
         if (epoch+1) % print_every == 0:
-            avg_bleu = avg_bleu/bleu_counter
+            avg_bleu = avg_bleu/score_counter
+            avg_gaussian = avg_gaussian/score_counter
             avg_loss = avg_loss/avg_counter
             avg_ce   = avg_ce/avg_counter
             avg_kld  = avg_kld/avg_counter
@@ -170,6 +180,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             print('Avg KLD = ', avg_kld)
             print('Beta = ',beta)
             print('Avg BLEU-4 score = ', avg_bleu)
+            print('Avg Gaussian score = ', avg_gaussian)
             data_tuple = random.choice(data)
             pred_seq = infer_by_simple(vae_model, data_tuple)
             
@@ -179,11 +190,12 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             print('=========================')
             # Reset 
             avg_bleu = 0.
+            avg_gaussian = 0.
             avg_loss = 0.
             avg_ce   = 0.
             avg_kld  = 0.
             avg_counter = 0
-            bleu_counter = 0
+            score_counter = 0
             
         if (epoch+1) % save_every == 0:
             torch.save(vae_model, ckp_path+str(epoch+1))
