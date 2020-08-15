@@ -190,7 +190,8 @@ def train_condVAE(vae_model, input_seq, input_cond, target_seq, target_cond, use
 # %%
 
 
-def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_every=100, save_every=100, record_every=1,
+def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, 
+                      print_every=100, save_every=100, 
                       learning_rate=0.01, teacher_forcing_ratio = 1.0, 
                       optimizer = None, scheduler = None,
                       criterion_CE = VAE_Loss_CE, criterion_KLD = VAE_Loss_KLD,
@@ -255,17 +256,17 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300, print_eve
         if scheduler is not None:
             scheduler.step()
         
-        if (epoch+1) % record_every == 0:
-            loss_list.append(avg_loss)
-            ce_loss_list.append(avg_ce)
-            kld_loss_list.append(avg_kld)
-            bleu_list.append(avg_bleu)
             
         if (epoch+1) % print_every == 0:
             avg_bleu = avg_bleu/avg_counter
             avg_loss = avg_loss/avg_counter
             avg_ce   = avg_ce/avg_counter
             avg_kld  = avg_kld/avg_counter
+            
+            loss_list.append(avg_loss)
+            ce_loss_list.append(avg_ce)
+            kld_loss_list.append(avg_kld)
+            bleu_list.append(avg_bleu)
 
             print('-----------------')
             print('Iter %d: avg_loss = %.4f' % (epoch+1, avg_loss))
@@ -314,7 +315,7 @@ lr_sch = optim.lr_scheduler.StepLR(optimizer, 500, gamma=0.8)
 
 loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
     trainIter_condVAE(my_vae, train_vocab, n_epochs=3000000, iter_per_epoch = 10,\
-                      print_every=1, save_every=200, record_every=10,\
+                      print_every=10, save_every=200, \
                       learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
                       optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
                       criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     \
