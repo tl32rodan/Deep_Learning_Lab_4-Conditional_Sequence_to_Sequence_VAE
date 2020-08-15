@@ -1,1 +1,1 @@
-python3 main.py --ckp_postfix=heuristic_0815 --annealing heuristic --print_every 10 --n_epochs 100000 --save_every 10
+python3 main.py --ckp_postfix=heuristic_2335 --annealing heuristic --print_every 10 --n_epochs 100000 --save_every 100

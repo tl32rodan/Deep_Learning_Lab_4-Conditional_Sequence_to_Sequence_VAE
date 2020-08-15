@@ -246,8 +246,8 @@ def VAE_Loss_KLD(mu, logvar):
 ## Use KL annealing
 def KL_annealing(current_iter, policy = 'mono', mono_reach_max = 60000,
                 cycl_reach_max = 50000, cycl_period = 2000,
-                heuristic_base = 1e-4, heuristic_rate = 1e-1,
-                heuristic_grow_every = 20):
+                heuristic_base = 1e-4, heuristic_rate = 5e-2,
+                heuristic_grow_every = 50):
     if policy == 'mono':
         beta = 1 if current_iter >= mono_reach_max else (current_iter+1)/mono_reach_max
     elif policy == 'cyclical':

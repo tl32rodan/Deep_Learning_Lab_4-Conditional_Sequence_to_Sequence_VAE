@@ -198,7 +198,9 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             avg_counter = 0
         
 
-        if avg_bleu >= 0.7 and avg_gaussian >=0.2:
+        if avg_bleu >= 0.7 and avg_gaussian >=0.3:
+            torch.save(vae_model, ckp_path+'_'+str(epoch+1)+'_best')
+        elif avg_bleu >= 0.6 and avg_gaussian >=0.2:
             torch.save(vae_model, ckp_path+'_'+str(epoch+1)+'_nice')
     
     return loss_list, ce_loss_list, kld_loss_list, bleu_list
