@@ -71,10 +71,10 @@ EOS_token = vocab_size-1
 
 
 #----------Hyper Parameters----------#
-hidden_size = 128
+hidden_size = 256
 latent_size = 32
 teacher_forcing_ratio = 0.6
-kl_annealing = 'mono'
+kl_annealing = 'cyclical'
 KLD_weight = 0.0
 lr = 0.05
 
@@ -215,6 +215,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
     avg_ce   = 0.
     avg_kld  = 0.
     avg_counter = 0
+    bleu_counter = 0
     
     for epoch in range(n_epochs): 
         # Randomly pick data
@@ -232,6 +233,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             # Should execute before updating the model
             pred = infer_by_simple(vae_model, data_tuple)
             avg_bleu += compute_bleu(pred, data_tuple)
+            bleu_counter += 1
             
             for i in range(4):
                 for j in range(4):
@@ -259,7 +261,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
         
             
         if (epoch+1) % print_every == 0:
-            avg_bleu = avg_bleu/avg_counter
+            avg_bleu = avg_bleu/bleu_counter
             avg_loss = avg_loss/avg_counter
             avg_ce   = avg_ce/avg_counter
             avg_kld  = avg_kld/avg_counter
@@ -288,6 +290,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             avg_ce   = 0.
             avg_kld  = 0.
             avg_counter = 0
+            bleu_counter = 0
             
         if (epoch+1) % save_every == 0:
             torch.save(vae_model,'./models/condVAE_'+str(epoch+1)+date)
@@ -319,7 +322,7 @@ loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
                       print_every=10, save_every=200, \
                       learning_rate=lr,teacher_forcing_ratio=teacher_forcing_ratio,\
                       optimizer= optimizer, criterion_CE = VAE_Loss_CE,\
-                      criterion_KLD = VAE_Loss_KLD,date = '_0814_1530', scheduler = lr_sch,     \
+                      criterion_KLD = VAE_Loss_KLD,date = '_0815_0800', scheduler = lr_sch,     \
                       kl_annealing = kl_annealing)
 # %%
 
