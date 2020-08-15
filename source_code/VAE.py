@@ -241,3 +241,20 @@ def VAE_Loss_KLD(mu, logvar):
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     
     return KLD
+
+
+## Use KL annealing
+def KL_annealing(current_iter, policy = 'mono', mono_reach_max = 300000,
+                cycl_reach_max = 50000, cycl_period = 100000,
+                heuristic_base = 1e-4, heuristic_rate = 1e-3,
+                heuristic_grow_every = 50):
+    if policy == 'mono':
+        beta = 1 if current_iter >= mono_reach_max else (current_iter+1)/mono_reach_max
+    elif policy == 'cyclical':
+        beta = 1 if current_iter%cycl_period >= cycl_reach_max else ((current_iter+1)%cycl_period)/cycl_reach_max
+    elif policy == 'heuristic':
+        beta = heuristic_base*( (1+heuristic_rate)**(current_iter/heuristic_grow_every) )
+    else:
+        raise ValueError
+        
+    return beta
