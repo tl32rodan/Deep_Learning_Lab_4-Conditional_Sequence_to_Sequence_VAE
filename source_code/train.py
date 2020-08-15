@@ -194,6 +194,6 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             avg_counter = 0
             
         if (epoch+1) % save_every == 0:
-            torch.save(vae_model, ckp_path+str(epoch+1))
+            torch.save(vae_model, ckp_path+'_'+str(epoch+1))
     
     return loss_list, ce_loss_list, kld_loss_list, bleu_list
