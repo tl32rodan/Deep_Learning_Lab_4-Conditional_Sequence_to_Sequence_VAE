@@ -156,8 +156,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
         if scheduler is not None:
             scheduler.step()
         
-            
-        if (epoch+1) % print_every == 0:
+        if (epoch+1) % save_every == 0 or (epoch+1) % print_every == 0:
             # Calculate score
             avg_bleu = cal_bleu(vae_model, hidden_size)
             avg_gaussian = cal_gaussian(vae_model, latent_size)
@@ -165,11 +164,14 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             avg_loss = avg_loss/avg_counter
             avg_ce   = avg_ce/avg_counter
             avg_kld  = avg_kld/avg_counter
-            
+
+        if (epoch+1) % save_every == 0:
             loss_list.append(avg_loss)
             ce_loss_list.append(avg_ce)
             kld_loss_list.append(avg_kld)
             bleu_list.append(avg_bleu)
+            
+        if (epoch+1) % print_every == 0:
 
             print('-----------------')
             print('Iter %d: avg_loss = %.4f' % (epoch+1, avg_loss))
@@ -185,6 +187,8 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             print('|| pred_seq = ', pred_seq)
             print('|| target_seq = ', data_tuple)
             print('=========================')
+        
+        if (epoch+1) % save_every == 0 or (epoch+1) % print_every == 0:
             # Reset 
             avg_bleu = 0.
             avg_gaussian = 0.
@@ -192,8 +196,9 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             avg_ce   = 0.
             avg_kld  = 0.
             avg_counter = 0
-            
-        if (epoch+1) % save_every == 0:
-            torch.save(vae_model, ckp_path+'_'+str(epoch+1))
+        
+
+        if avg_bleu >= 0.7 and avg_gaussian >=0.2:
+            torch.save(vae_model, ckp_path+'_nice')
     
     return loss_list, ce_loss_list, kld_loss_list, bleu_list
