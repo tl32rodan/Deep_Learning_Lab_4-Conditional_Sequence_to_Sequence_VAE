@@ -50,6 +50,7 @@ def cal_gaussian(model, latent_size=32, print_result = False):
         
         for cond in range(4):
             pred_seq = model.decode(model.fc_extend_latent(latent), cond)
+            pred_seq = str_from_tensor(pred_seq)
             pred_tuple.append(pred_seq[:-1])
             
         result.append(pred_tuple)

@@ -3,7 +3,7 @@ from dataloader import *
 from VAE import *
 from scores import *
 from utils import *
-from test import *
+from cal_score import *
 
 import torch
 import torch.nn as nn
