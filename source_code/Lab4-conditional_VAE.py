@@ -74,7 +74,7 @@ EOS_token = vocab_size-1
 hidden_size = 128
 latent_size = 32
 teacher_forcing_ratio = 0.6
-kl_annealing = 'cyclical'
+kl_annealing = 'mono'
 KLD_weight = 0.0
 lr = 0.05
 
@@ -102,11 +102,12 @@ def str_from_tensor(target):
 # %%
 
 
-def KL_annealing(current_iter, policy = 'mono', reach_max = 30000, period = 60000):
+def KL_annealing(current_iter, policy = 'mono', mono_reach_max = 100000,
+                cycl_reach_max = 30000, cycl_period = 60000):
     if policy == 'mono':
-        beta = 1 if current_iter >= reach_max else (current_iter+1)/reach_max
+        beta = 1 if current_iter >= mono_reach_max else (current_iter+1)/mono_reach_max
     elif policy == 'cyclical':
-        beta = 1 if current_iter%period >= reach_max else ((current_iter+1)%period)/reach_max
+        beta = 1 if current_iter%cycl_period >= cycl_reach_max else ((current_iter+1)%cycl_period)/cycl_reach_max
     else:
         raise ValueError
         
