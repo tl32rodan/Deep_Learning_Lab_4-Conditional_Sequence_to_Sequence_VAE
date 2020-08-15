@@ -111,7 +111,7 @@ def KL_annealing(current_iter, policy = 'mono', mono_reach_max = 300000,
     elif policy == 'cyclical':
         beta = 1 if current_iter%cycl_period >= cycl_reach_max else ((current_iter+1)%cycl_period)/cycl_reach_max
     elif policy == 'heuristic':
-        beta = heuristic_base*( (1+heuristic_rate)**(current_iter/heuristic_grow_every) )
+        beta = min(1, heuristic_base*( (1+heuristic_rate)**(current_iter/heuristic_grow_every) ) )
     else:
         raise ValueError
         
