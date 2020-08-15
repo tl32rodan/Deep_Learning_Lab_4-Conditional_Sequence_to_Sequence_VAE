@@ -74,7 +74,7 @@ EOS_token = vocab_size-1
 hidden_size = 256
 latent_size = 32
 teacher_forcing_ratio = 0.6
-kl_annealing = 'cyclical'
+kl_annealing = 'heuristic'
 KLD_weight = 0.0
 lr = 0.05
 
@@ -111,7 +111,7 @@ def KL_annealing(current_iter, policy = 'mono', mono_reach_max = 300000,
     elif policy == 'cyclical':
         beta = 1 if current_iter%cycl_period >= cycl_reach_max else ((current_iter+1)%cycl_period)/cycl_reach_max
     elif policy == 'heuristic':
-        beta = heuristic*( (1+heuristic_rate)**(current_iter/heuristic_grow_every) )
+        beta = heuristic_base*( (1+heuristic_rate)**(current_iter/heuristic_grow_every) )
     else:
         raise ValueError
         
