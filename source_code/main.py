@@ -22,8 +22,8 @@ parser.add_argument('--ckp_postfix', type=str, default='0', metavar='DATE_TIME',
                     help='Checkpoint storing name\'s postfix')
 parser.add_argument('--annealing', type=str, default='mono', metavar='mono|cyclical|heuristic',
                     help='KL cost annealing strategy (default: mono)')
-parser.add_argument('--teacher_forcing_ratio', type=float, default=0.6, metavar='0.0~1.0',
-                   help='Teacher forcing ratio (default=0.6)')
+parser.add_argument('--teacher_forcing_ratio', type=float, default=0.7, metavar='0.0~1.0',
+                   help='Teacher forcing ratio (default=0.7)')
 parser.add_argument('--lr', type=float, default=0.05,
                    help='Learning rate (default=0.05)')
 parser.add_argument('--n_epochs', type=int, default=10000, metavar='N',
