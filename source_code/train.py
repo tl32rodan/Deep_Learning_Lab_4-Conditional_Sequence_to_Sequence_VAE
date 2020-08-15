@@ -14,7 +14,6 @@ plt.switch_backend('agg')
 import random
 import math
 
-# +
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #----------Hyper Parameters----------#
@@ -25,7 +24,6 @@ SOS_token = 0
 EOS_token = vocab_size-1
 
 
-# +
 
 def infer_by_simple(vae_model, data_tuple):
     pred_tuple = []
@@ -196,6 +194,6 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             avg_counter = 0
             
         if (epoch+1) % save_every == 0:
-            torch.save(vae_model, ckp_path+str(epoch+1))
+            torch.save(vae_model, ckp_path+'_'+str(epoch+1))
     
     return loss_list, ce_loss_list, kld_loss_list, bleu_list
