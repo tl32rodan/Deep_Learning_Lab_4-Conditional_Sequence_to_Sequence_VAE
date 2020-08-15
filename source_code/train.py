@@ -3,6 +3,7 @@ from dataloader import *
 from VAE import *
 from scores import *
 from utils import *
+from test import *
 
 import torch
 import torch.nn as nn
@@ -118,7 +119,6 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
     avg_ce   = 0.
     avg_kld  = 0.
     avg_counter = 0
-    score_counter = 0
     
     for epoch in range(n_epochs): 
         # Randomly pick data
@@ -132,10 +132,7 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
         
         for data_tuple in data_tuples:
             
-            # Calculate score
-            avg_bleu += cal_bleu(vae_model)
-            avg_gaussian += cal_gaussian(vae_model, latent_size)
-            score_counter += 1
+            
             
             for i in range(4):
                 for j in range(4):
@@ -163,8 +160,10 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
         
             
         if (epoch+1) % print_every == 0:
-            avg_bleu = avg_bleu/score_counter
-            avg_gaussian = avg_gaussian/score_counter
+            # Calculate score
+            avg_bleu = cal_bleu(vae_model, hidden_size)
+            avg_gaussian = cal_gaussian(vae_model, latent_size)
+            
             avg_loss = avg_loss/avg_counter
             avg_ce   = avg_ce/avg_counter
             avg_kld  = avg_kld/avg_counter
@@ -195,7 +194,6 @@ def trainIter_condVAE(vae_model, data, n_epochs, iter_per_epoch = 300,
             avg_ce   = 0.
             avg_kld  = 0.
             avg_counter = 0
-            score_counter = 0
             
         if (epoch+1) % save_every == 0:
             torch.save(vae_model, ckp_path+str(epoch+1))

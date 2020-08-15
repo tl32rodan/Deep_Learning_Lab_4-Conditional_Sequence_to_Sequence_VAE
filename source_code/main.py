@@ -5,7 +5,6 @@ from dataloader import *
 from VAE import *
 from scores import *
 from train import *
-from test import *
 
 import torch
 import torch.nn as nn
@@ -42,6 +41,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # %%
 train_vocab = load_data('./data/train.txt')
+print('Data loaded!')
 
 # %%
 # Train VAE
@@ -66,6 +66,7 @@ optimizer = optim.SGD(my_vae.parameters(), lr=args.lr)
 lr_sch = optim.lr_scheduler.StepLR(optimizer, 500, gamma=0.8)
 
 # %%
+print('Start training...')
 loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
     trainIter_condVAE(my_vae, train_vocab, n_epochs=args.n_epochs, iter_per_epoch = 10,\
                       print_every=args.print_every, save_every=args.save_every, \

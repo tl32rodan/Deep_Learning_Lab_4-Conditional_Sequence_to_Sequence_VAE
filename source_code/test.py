@@ -4,14 +4,14 @@ from utils import *
 import torch
 
 
-def cal_bleu(model, print_result = False):
+def cal_bleu(model, hidden_size = 256,print_result = False):
     test_vocab = load_data('./data/test.txt')
     input_tense_list  = [0, 0, 0, 0, 3, 0, 3, 2, 2, 2]
     target_tense_list = [3, 2, 1, 1, 1, 2, 0, 0, 3, 1]
     
     score = 0.
     
-    vae_model.eval()
+    model.eval()
     for i in range(10):
         input_tense = input_tense_list[i]  
         target_tense = target_tense_list[i]
@@ -22,7 +22,7 @@ def cal_bleu(model, print_result = False):
         # Initialize hidden feature
         hidden = torch.zeros(1, 1, hidden_size, device=device)
         # Eval
-        result, mu, logvar = vae_model(input_seq, hidden, input_tense, target_tense)
+        result, mu, logvar = model(input_seq, hidden, input_tense, target_tense)
         # Strim EOS
         pred_seq = str_from_tensor(result)[:-1]
         # Calculate BLEU-4 score
