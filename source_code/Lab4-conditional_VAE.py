@@ -103,7 +103,7 @@ def str_from_tensor(target):
 
 
 def KL_annealing(current_iter, policy = 'mono', mono_reach_max = 300000,
-                cycl_reach_max = 50, cycl_period = 60):
+                cycl_reach_max = 100000, cycl_period = 110000):
     if policy == 'mono':
         beta = 1 if current_iter >= mono_reach_max else (current_iter+1)/mono_reach_max
     elif policy == 'cyclical':
