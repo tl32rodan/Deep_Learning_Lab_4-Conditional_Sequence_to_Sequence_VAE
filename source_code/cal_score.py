@@ -46,7 +46,7 @@ def cal_gaussian(model, latent_size=32, print_result = False):
     model.eval()
     for i in range(100):
         pred_tuple = []
-        latent = torch.rand(1, 1, latent_size, device=model.device)
+        latent = torch.randn(1, 1, latent_size, device=model.device)
         
         for cond in range(4):
             pred_seq = model.decode(model.fc_extend_latent(latent), cond)
