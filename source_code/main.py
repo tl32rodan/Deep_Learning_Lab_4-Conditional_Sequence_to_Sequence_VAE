@@ -75,4 +75,6 @@ loss_list, ce_loss_list, kld_loss_list, bleu_list =  \
                       criterion_KLD = VAE_Loss_KLD, ckp_path = './models/model_'+args.ckp_postfix, \
                       kl_annealing = args.annealing)
 # %%
-plt.plot(kld_loss_list)
+torch.save(ce_loss_list,'./loss_lists/ce_loss/ce_'+args.ckp_postfix)
+torch.save(kld_loss_list,'./loss_lists/kld_loss/kld_'+args.ckp_postfix)
+torch.save(bleu_list,'./loss_lists/bleu_list/bleu_'+args.ckp_postfix)
