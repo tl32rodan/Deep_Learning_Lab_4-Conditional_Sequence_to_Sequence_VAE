@@ -36,7 +36,7 @@ def cal_bleu(model, hidden_size = 256,print_result = False):
     score = score/10.
     if print_result:
         print('=================================')
-        print('Average BLEU-4 score = ',score/10.)
+        print('Average BLEU-4 score = ',score)
         
     return score
 

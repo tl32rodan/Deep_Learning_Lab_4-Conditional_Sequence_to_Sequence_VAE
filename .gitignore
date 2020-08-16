@@ -131,3 +131,4 @@ dmypy.json
 *.zip
 *.pptx
 source_code/models/**
+source_code/loss_lists/**
