@@ -3,7 +3,7 @@
 * Simple:
     * `$ ./source_code/script/[mono | cyclical]`
 * With parameters:
-    * ```$ python3 main.py [-h] [--ckp_postfix DATE_TIME] 
-               [--annealing mono|cyclical|heuristic]
-               [--teacher_forcing_ratio 0.0~1.0] [--lr LR] [--n_epochs N]
-               [--print_every N] [--save_every N]```
+    * `$ python3 main.py [-h] [--ckp_postfix DATE_TIME] `
+              `[--annealing mono|cyclical|heuristic]`
+              `[--teacher_forcing_ratio 0.0~1.0] [--lr LR] [--n_epochs N]`
+              ` [--print_every N] [--save_every N]`
